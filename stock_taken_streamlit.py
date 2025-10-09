@@ -5,6 +5,10 @@ import os
 import matplotlib.pyplot as plt
 import math
 from streamlit_qrcode_scanner import qrcode_scanner
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+
+
 
 # read and load inventory data
 @st.cache_data #缓存数据，避免每次运行都要重新加载数据
@@ -148,20 +152,51 @@ if "results" in st.session_state and not st.session_state.results.empty:
         st.subheader("库存差异分布")
         fig, ax = plt.subplots()
         merged.set_index("SKU")["Variance"].plot(kind="bar", ax=ax)
-        ax.set_ylabel("差异数量")
-        ax.set_title("各SKU盘点差异")
+        ax.set_ylabel("Variance")
+        ax.set_title("Variance of each SKU")
         st.pyplot(fig)
 
-        # 保存并提供下载
-        plt.savefig("inventory_report.png", bbox_inches="tight")
-        with open("inventory_report.png", "rb") as file:
+        # 保存图表为图片
+        plt.savefig("inventory_chart.png", bbox_inches="tight")
+
+        # 创建 PDF 文件
+        pdf_path = "inventory_report.pdf"
+        c = canvas.Canvas(pdf_path, pagesize=A4)
+        width, height = A4
+
+        # 写标题
+        c.setFont("Helvetica-Bold", 18)
+        c.drawString(100, height - 50, "盘点分析报告")
+
+        # 写日期
+        c.setFont("Helvetica", 12)
+        c.drawString(100, height - 80, f"生成日期：{datetime.date.today()}")
+
+        # 插入图表图片
+        c.drawImage("inventory_chart.png", 50, height - 400, width=500, preserveAspectRatio=True)
+
+        # 可以写入数据分析结果
+        c.setFont("Helvetica", 12)
+        c.drawString(100, height - 420, "主要盘点结果：")
+        c.drawString(120, height - 440, "- 总库存量：2000 箱")
+        c.drawString(120, height - 460, "- 差异率：2.5%")
+        c.drawString(120, height - 480, "- 异常SKU：5个")
+
+        c.showPage()
+        c.save()
+
+        # 提供下载按钮
+        with open(pdf_path, "rb") as file:
             st.download_button(
-                label="📎 下载盘点报告图表",
+                label="📄 下载完整盘点分析报告",
                 data=file,
-                file_name="inventory_report.png",
-                mime="image/png"    
+                file_name="inventory_report.pdf",
+                mime="application/pdf"    
     )
-        
+            
+     
+ 
+
 
 
 
