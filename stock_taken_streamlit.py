@@ -156,46 +156,48 @@ if "results" in st.session_state and not st.session_state.results.empty:
         ax.set_title("Variance of each SKU")
         st.pyplot(fig)
 
-       """生成美观的盘点 PDF 报告"""
+       ##"""生成美观的盘点 PDF 报告"""
        # 生成图表
-       def create_inventory_report(df):
-           fig, ax = plt.subplots(figsize=(6, 4))
-           df.plot(kind='bar', x='SKU', y='Variance', ax=ax, legend=False, color='steelblue')
-           ax.set_title("Inventory Variance Report", fontsize=14)
-           ax.set_xlabel("SKU")
-           ax.set_ylabel("Variance")
-           plt.tight_layout()
+        def create_inventory_report(df):
+            fig, ax = plt.subplots(figsize=(6, 4))
+            df.plot(kind='bar', x='SKU', y='Variance', ax=ax, legend=False, color='steelblue')
+            ax.set_title("Inventory Variance Report", fontsize=14)
+            ax.set_xlabel("SKU")
+            ax.set_ylabel("Variance")
+            plt.tight_layout()
 
            # 保存图像
-           chart_path = "inventory_chart.png"
-           fig.savefig(chart_path, dpi=150)
-           plt.close(fig)
+            chart_path = "inventory_chart.png"
+            fig.savefig(chart_path, dpi=150)
+            plt.close(fig)
 
            # 创建 PDF 报告
-           pdf_path = "inventory_report.pdf"
-           doc = SimpleDocTemplate(pdf_path, pagesize=A4)
-           styles = getSampleStyleSheet()
-           story = []
+            pdf_path = "inventory_report.pdf"
+            doc = SimpleDocTemplate(pdf_path, pagesize=A4)
+            styles = getSampleStyleSheet()
+            story = []
 
            # 报告标题
-           story.append(Paragraph("<b>Inventory Variance Analysis Report</b>", styles["Title"]))
-           story.append(Spacer(1, 20))
+            story.append(Paragraph("<b>Inventory Variance Analysis Report</b>", styles["Title"]))
+            story.append(Spacer(1, 20))
 
            # 添加说明文字
-           story.append(Paragraph("This report shows SKU-level variance between system stock and actual count.", styles["Normal"]))
-           story.append(Spacer(1, 15))
+            story.append(Paragraph("This report shows SKU-level variance between system stock and actual count.", styles["Normal"]))
+            story.append(Spacer(1, 15))
 
            # 添加图表（自动缩放）
-           story.append(Image(chart_path, width=400, height=300))
-           story.append(Spacer(1, 20))
+            story.append(Image(chart_path, width=400, height=300))
+            story.append(Spacer(1, 20))
 
            # 添加表格数据（简化展示）
-           for _, row in df.iterrows():
-                info = f"SKU: {row['SKU']} | System: {row['SystemQty']} | Actual: {row['ActualQty']} | Variance: {row['Variance']}"
-                story.append(Paragraph(info, styles["Normal"]))
+            for _, row in df.iterrows():
+                 info = f"SKU: {row['SKU']} | System: {row['SystemQty']} | Actual: {row['ActualQty']} | Variance: {row['Variance']}"
+                 story.append(Paragraph(info, styles["Normal"]))
 
-           doc.build(story)
-           return pdf_path
+            doc.build(story)
+            return pdf_path
+            
+           
                
        
      
@@ -203,6 +205,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
        
        
  
+
 
 
 
