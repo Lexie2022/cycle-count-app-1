@@ -1,6 +1,6 @@
 
 
-
+reportlab==4.4.4
 gitdb==4.0.12
 GitPython==3.1.45
 html5lib==1.1
@@ -53,3 +53,4 @@ webencodings==0.5.1
 wheel==0.45.1
 xlrd==2.0.1
 yagmail==0.15.293
+
