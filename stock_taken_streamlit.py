@@ -152,3 +152,15 @@ if "results" in st.session_state and not st.session_state.results.empty:
         ax.set_title("各SKU盘点差异")
         st.pyplot(fig)
 
+        # 保存并提供下载
+        plt.savefig("inventory_report.png", bbox_inches="tight")
+        with open("inventory_report.png", "rb") as file:
+        st.download_button(
+        label="📎 下载盘点报告图表",
+        data=file,
+        file_name="inventory_report.png",
+        mime="image/png"
+    )
+        
+
+
