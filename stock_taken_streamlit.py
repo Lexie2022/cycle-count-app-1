@@ -196,6 +196,23 @@ if "results" in st.session_state and not st.session_state.results.empty:
 
             doc.build(story)
             return pdf_path
+
+            # 显示报告生成成功
+            st.success("✅ 盘点报告已生成！")
+
+            # 读取 PDF 文件内容
+            with open(pdf_path, "rb") as f:
+                pdf_bytes = f.read()
+    
+
+            # 添加下载按钮
+            st.download_button(
+                label="📄 下载盘点报告 PDF",
+                data=pdf_bytes,
+                file_name="inventory_report.pdf",
+                mime="application/pdf"
+    
+             )
             
            
                
@@ -205,6 +222,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
        
        
  
+
 
 
 
