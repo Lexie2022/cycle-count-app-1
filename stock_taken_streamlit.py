@@ -8,14 +8,12 @@ from streamlit_qrcode_scanner import qrcode_scanner
 
 # read and load inventory data
 @st.cache_data #缓存数据，避免每次运行都要重新加载数据
-def load_inventory(file_path="D:/study/python_practice/stock_taken/inventory.xlsx"):
+def load_inventory(file_path="inventory.xlsx"):
     return pd.read_excel(file_path)
 # save cycle count results
 def save_results(df, suffix="result"):
     today =datetime.date.today().strftime("%Y-%m-%d")
-    save_dir = "D:/study/pyton_practice/stock_taken" #目标目录
-    os.makedirs(save_dir, exist_ok=True) # 如果目录不存在，自动创建一个
-    file_name = os.path.join(save_dir, f"cycle_count_{suffix}_{today}.xlsx")
+    file_name = f"cycle_count_{suffix}_{today}.xlsx"
     df.to_excel(file_name, index=False)
     return file_name
 
@@ -153,3 +151,4 @@ if "results" in st.session_state and not st.session_state.results.empty:
         ax.set_ylabel("差异数量")
         ax.set_title("各SKU盘点差异")
         st.pyplot(fig)
+
