@@ -156,46 +156,54 @@ if "results" in st.session_state and not st.session_state.results.empty:
         ax.set_title("Variance of each SKU")
         st.pyplot(fig)
 
-        # 保存图表为图片
-        plt.savefig("inventory_chart.png", bbox_inches="tight")
+       """生成美观的盘点 PDF 报告"""
+       # 生成图表
+       def create_inventory_report(df):
+           fig, ax = plt.subplots(figsize=(6, 4))
+           df.plot(kind='bar', x='SKU', y='Variance', ax=ax, legend=False, color='steelblue')
+           ax.set_title("Inventory Variance Report", fontsize=14)
+           ax.set_xlabel("SKU")
+           ax.set_ylabel("Variance")
+           plt.tight_layout()
 
-        # 创建 PDF 文件
-        pdf_path = "inventory_report.pdf"
-        c = canvas.Canvas(pdf_path, pagesize=A4)
-        width, height = A4
+           # 保存图像
+           chart_path = "inventory_chart.png"
+           fig.savefig(chart_path, dpi=150)
+           plt.close(fig)
 
-        # 写标题
-        c.setFont("Helvetica-Bold", 18)
-        c.drawString(100, height - 50, "盘点分析报告")
+           # 创建 PDF 报告
+           pdf_path = "inventory_report.pdf"
+           doc = SimpleDocTemplate(pdf_path, pagesize=A4)
+           styles = getSampleStyleSheet()
+           story = []
 
-        # 写日期
-        c.setFont("Helvetica", 12)
-        c.drawString(100, height - 80, f"生成日期：{datetime.date.today()}")
+           # 报告标题
+           story.append(Paragraph("<b>Inventory Variance Analysis Report</b>", styles["Title"]))
+           story.append(Spacer(1, 20))
 
-        # 插入图表图片
-        c.drawImage("inventory_chart.png", 50, height - 400, width=500, preserveAspectRatio=True)
+           # 添加说明文字
+           story.append(Paragraph("This report shows SKU-level variance between system stock and actual count.", styles["Normal"]))
+           story.append(Spacer(1, 15))
 
-        # 可以写入数据分析结果
-        c.setFont("Helvetica", 12)
-        c.drawString(100, height - 420, "主要盘点结果：")
-        c.drawString(120, height - 440, "- 总库存量：2000 箱")
-        c.drawString(120, height - 460, "- 差异率：2.5%")
-        c.drawString(120, height - 480, "- 异常SKU：5个")
+           # 添加图表（自动缩放）
+           story.append(Image(chart_path, width=400, height=300))
+           story.append(Spacer(1, 20))
 
-        c.showPage()
-        c.save()
+           # 添加表格数据（简化展示）
+           for _, row in df.iterrows():
+                info = f"SKU: {row['SKU']} | System: {row['SystemQty']} | Actual: {row['ActualQty']} | Variance: {row['Variance']}"
+                story.append(Paragraph(info, styles["Normal"]))
 
-        # 提供下载按钮
-        with open(pdf_path, "rb") as file:
-            st.download_button(
-                label="📄 下载完整盘点分析报告",
-                data=file,
-                file_name="inventory_report.pdf",
-                mime="application/pdf"    
-    )
-            
+           doc.build(story)
+           return pdf_path
+               
+       
      
+           
+       
+       
  
+
 
 
 
