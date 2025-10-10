@@ -10,7 +10,7 @@ from reportlab.pdfgen import canvas
 
 
 
-# read and load inventory data
+# read and load inventory data--------------------------------------------------------------------
 @st.cache_data #缓存数据，避免每次运行都要重新加载数据
 def load_inventory(file_path="inventory.xlsx"):
     return pd.read_excel(file_path)
@@ -21,7 +21,7 @@ def save_results(df, suffix="result"):
     df.to_excel(file_name, index=False)
     return file_name
 
-# generate 30 days plan
+# generate 30 days plan-----------------------------------------------------------------------
 def generate_cycle_plan(inventory, days=30):
     plan = {}
     total =len(inventory)
@@ -36,15 +36,46 @@ def generate_cycle_plan(inventory, days=30):
 
     return plan
 
-#---streamlit 页面----
-st.set_page_config(page_title="Cycle Count 盘点系统", layout="wide")
+ # ----生成美观的盘点 PDF 报告---------------------------------------------------------------
+ def create_inventory_report(df):
+      fig, ax = plt.subplots(figsize=(6, 4))
+      df.plot(kind='bar', x='SKU', y='Variance', ax=ax, legend=False, color='steelblue')
+      ax.set_title("Inventory Variance Report", fontsize=14)
+      ax.set_xlabel("SKU")
+      ax.set_ylabel("Variance")
+      plt.tight_layout()
 
+      chart_path = "inventory_chart.png"
+      fig.savefig(chart_path, dpi=150)
+      plt.close(fig)
+
+      pdf_path = "inventory_report.pdf"
+      doc = SimpleDocTemplate(pdf_path, pagesize=A4)
+      styles = getSampleStyleSheet()
+      story = []
+
+      story.append(Paragraph("<b>Inventory Variance Analysis Report</b>", styles["Title"]))
+      story.append(Spacer(1, 20))
+      story.append(Paragraph("This report shows SKU-level variance between system stock and actual count.", styles["Normal"]))
+      story.append(Spacer(1, 15))
+      story.append(Image(chart_path, width=400, height=300))
+      story.append(Spacer(1, 20))
+
+      # 表格简要信息
+      for _, row in df.iterrows():
+          info = f"SKU: {row['SKU']} | System: {row['SystemQty']} | Counted: {row['CountedQty']} | Variance: {row['Variance']}"
+          story.append(Paragraph(info, styles["Normal"]))
+
+      doc.build(story)
+      return pdf_path
+                
+#---streamlit 页面-------------------------------------------------------------------------
+st.set_page_config(page_title="Cycle Count 盘点系统", layout="wide")
 st.title("📦 Cycle Count 盘点系统")
 st.write("每天自动生成盘点任务, 支持扫码录入, 自动统计差异, 并可导出Excel报表")
 
 # 加载库存
 inventory = load_inventory()
-
 #生成30天盘点计划
 plan = generate_cycle_plan(inventory, days=30)
 
@@ -96,7 +127,6 @@ with st.form("count_form"): #表示创建一个表单区域，在streamlit页面
 if submit and sku_input:
     if "results" not in st.session_state:
         st.session_state.results = pd.DataFrame(columns=["SKU", "CountedQty"])
-
     new_row = pd.DataFrame({"SKU":[sku_input], "CountedQty":[qty_input]})
     st.session_state.results = pd.concat([st.session_state.results, new_row], ignore_index=True)
     st.success(f"已记录: {sku_input}-{qty_input}")
@@ -105,13 +135,11 @@ if submit and sku_input:
 if "results" in st.session_state and not st.session_state.results.empty:
     st.subheader("📋 已录入盘点数据")
     st.dataframe(st.session_state.results)
-
     #生成差异报告+分析
     if st.button("生成盘点结果报告"): # st.button是streamlit中自带的UI，会自动产生一个按钮
         #统一SKU类型为字符串
         daily_list["SKU"] = daily_list["SKU"].astype(str)
-        st.session_state.results["SKU"] = st.session_state.results["SKU"].astype(str)
-       
+        st.session_state.results["SKU"] = st.session_state.results["SKU"].astype(str)  
         merged = daily_list.merge(st.session_state.results, on="SKU", how="left")
         merged["Variance"] = merged["CountedQty"] - merged["SystemQty"]
 
@@ -130,7 +158,6 @@ if "results" in st.session_state and not st.session_state.results.empty:
         
         #-----统计分析----
         st.subheader("📈 盘点分析")
-
         counted_mask = merged["CountedQty"].notna()
         total_counted = counted_mask.sum()
         correct_counted = ((merged["Variance"] == 0) & counted_mask).sum()
@@ -156,63 +183,18 @@ if "results" in st.session_state and not st.session_state.results.empty:
         ax.set_title("Variance of each SKU")
         st.pyplot(fig)
 
-       ##"""生成美观的盘点 PDF 报告"""
-       # 生成图表
-        def create_inventory_report(df):
-            fig, ax = plt.subplots(figsize=(6, 4))
-            df.plot(kind='bar', x='SKU', y='Variance', ax=ax, legend=False, color='steelblue')
-            ax.set_title("Inventory Variance Report", fontsize=14)
-            ax.set_xlabel("SKU")
-            ax.set_ylabel("Variance")
-            plt.tight_layout()
-
-           # 保存图像
-            chart_path = "inventory_chart.png"
-            fig.savefig(chart_path, dpi=150)
-            plt.close(fig)
-
-           # 创建 PDF 报告
-            pdf_path = "inventory_report.pdf"
-            doc = SimpleDocTemplate(pdf_path, pagesize=A4)
-            styles = getSampleStyleSheet()
-            story = []
-
-           # 报告标题
-            story.append(Paragraph("<b>Inventory Variance Analysis Report</b>", styles["Title"]))
-            story.append(Spacer(1, 20))
-
-           # 添加说明文字
-            story.append(Paragraph("This report shows SKU-level variance between system stock and actual count.", styles["Normal"]))
-            story.append(Spacer(1, 15))
-
-           # 添加图表（自动缩放）
-            story.append(Image(chart_path, width=400, height=300))
-            story.append(Spacer(1, 20))
-
-           # 添加表格数据（简化展示）
-            for _, row in df.iterrows():
-                 info = f"SKU: {row['SKU']} | System: {row['SystemQty']} | Actual: {row['ActualQty']} | Variance: {row['Variance']}"
-                 story.append(Paragraph(info, styles["Normal"]))
-
-            doc.build(story)
-            return pdf_path
-
-            # 显示报告生成成功
-            st.success("✅ 盘点报告已生成！")
-
-            # 读取 PDF 文件内容
-            with open(pdf_path, "rb") as f:
-                pdf_bytes = f.read()
-    
-
-            # 添加下载按钮
+        # -----生成PDF文件并添加下载按钮------
+        pdf_path = create_inventory_report(merged)
+        with open(pdf_path, "rb") as f:
             st.download_button(
                 label="📄 下载盘点报告 PDF",
-                data=pdf_bytes,
+                data=f,
                 file_name="inventory_report.pdf",
                 mime="application/pdf"
-    
-             )
+            )
+       
+
+            
             
            
                
@@ -222,6 +204,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
        
        
  
+
 
 
 
