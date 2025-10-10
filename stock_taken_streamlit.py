@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import math
 from streamlit_qrcode_scanner import qrcode_scanner
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
 
 
 
@@ -204,6 +205,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
        
        
  
+
 
 
 
