@@ -37,7 +37,7 @@ def generate_cycle_plan(inventory, days=30):
     return plan
 
  # ----生成美观的盘点 PDF 报告---------------------------------------------------------------
- def create_inventory_report(df):
+def create_inventory_report(df):
       fig, ax = plt.subplots(figsize=(6, 4))
       df.plot(kind='bar', x='SKU', y='Variance', ax=ax, legend=False, color='steelblue')
       ax.set_title("Inventory Variance Report", fontsize=14)
@@ -204,6 +204,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
        
        
  
+
 
 
 
