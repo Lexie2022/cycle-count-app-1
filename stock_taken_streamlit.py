@@ -218,7 +218,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
         st.pyplot(fig)
 
         # -----生成PDF文件并添加下载按钮------
-        pdf_path = create_inventory_report(merged)
+        pdf_path = create_inventory_report(merged, accuracy, shortage, overage)
         with open(pdf_path, "rb") as f:
             st.download_button(
                 label="📄 下载盘点报告 PDF",
@@ -238,6 +238,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
        
        
  
+
 
 
 
