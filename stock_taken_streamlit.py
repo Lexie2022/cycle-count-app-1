@@ -146,11 +146,6 @@ if st.session_state.show_scanner:
         st.session_state["last_scanned"] = qr_code
         st.session_state.show_scanner = False#扫码完成关闭界面
 
-#扫码功能，先扫码，扫码结果缓存到st.session_state中
-qr_code = qrcode_scanner(key="qrcode")
-st.success(f"扫码成功: {qr_code}")
-st.session_state["last_scanned"] = qr_code
-
 #表单：手动输入/扫码输入 SKU+数量
 with st.form("count_form"): #表示创建一个表单区域，在streamlit页面上创建一个名字叫count_form的表单区域
     default_sku = st.session_state.get("last_scanned", "") #返回之前存储的SKU，如果没有扫上就会返回空值
@@ -238,6 +233,7 @@ if "results" in st.session_state and not st.session_state.results.empty:
        
        
  
+
 
 
 
